@@ -46,6 +46,11 @@ class UserManager(BaseUserManager):
 # Model for custom user
 
 class User(AbstractBaseUser):
+    """
+        Custom user table for regestering the user
+        fields email , name , year , is_active , staff , admin 
+
+    """
     email = models.EmailField(verbose_name='email address',max_length=255,unique=True,)
     name = models.CharField(max_length=40)
     year = models.IntegerField()
@@ -70,11 +75,11 @@ class User(AbstractBaseUser):
     def has_module_perms(self, app_label):
         return True
 
-    @property                                     #property tag to call directly
+    @property                                     #property tag to call directly is staff
     def is_staff(self): 
         return self.staff
 
-    @property
+    @property                                     #property tag to call directly is admin
     def is_admin(self):
         return self.admin
 
@@ -83,19 +88,53 @@ class User(AbstractBaseUser):
 #model for adding a project
 
 class project(models.Model):
+    """
+        Custom user table for regestering the user
+        fields projtitle , wiki , member
+        
+    """
     projtitle = models.CharField(max_length=50)
     wiki = models.TextField()
     member = models.ManyToManyField(User)
 
+    def __str__(self):
+        return self.projtitle
+
+#model for adding a list
     
 class list(models.Model):
+
+    """
+        Custom user table for regestering the user
+        fields listtitle , desc , is_completed , start_date , due_date , project_id
+        
+    """
     listtitle = models.CharField(max_length=50)
     desc = models.CharField(max_length=500)
-    project = models.ForeignKey(to=project, on_delete=models.CASCADE)
+    is_completed = models.BooleanField(default=False)
+    start_date = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
+    project_id = models.ForeignKey(to=project, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.listtitle
+
+#model for adding a card
 
 class card(models.Model):
+    """
+        Custom user table for regestering the user
+        fields cardtitle , desc , is_completed , start_date , due_date , list_id , assigned_members
+        
+    """
     cardtitle = models.CharField(max_length=50)
     desc = models.CharField(max_length=500)
-    list = models.ForeignKey(to=list, on_delete=models.CASCADE)
+    start_date = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
+    is_completed = models.BooleanField(default=False)
+    list_id = models.ForeignKey(to=list, on_delete=models.CASCADE)
     assigned_member = models.ManyToManyField(User)
+
+    def __str__(self):
+        return self.cardtitle
     

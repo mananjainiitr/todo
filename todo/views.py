@@ -1,50 +1,13 @@
-import json
 from django.http.response import HttpResponse
-from .models import   User , project
-from .serializers import  projectserializer
-from django.http import Http404
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.http import JsonResponse
+from .models import   User , project , list
+from .serializers import  listserializer, projectserializer ,cardserializer
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import mixins
 from rest_framework import generics
 from django.shortcuts import redirect
 import requests
-from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate , login
+from todo import models
 
-def main_page(request):
-    user = User.objects.create_user(
-            email="mj6@gmail.com",
-            name = "jai_manan",
-            year = "2",
-            password = "20312018",
-  )
-    
-    user.save()
-    return HttpResponse(user)
-def login2(request):
-    email="mj6@gmail.com"
-    password = "20312018"
-    user = User.objects.filter(email=email)
-    
-
-    if user:
-        user = authenticate(email=email,password = password)
-        request.user = user
-        login(request,user)
-        return redirect("/todo/regester")
-
-
-    return redirect(user)
-
-@csrf_exempt
 def student_detail(request):
     if request.method == 'GET':
         url = "https://channeli.in/oauth/authorise/?client_id=STTrMkmTfDZEuFoDKj45uM6YEN4FXXXByWzltpRg&redirect_uri=http://127.0.0.1:8000/todo/login&state=RANDOM_STATE_STRING"
@@ -84,52 +47,26 @@ def student(request):
             login(request,user)
             return redirect("/todo/project")
         return redirect("/todo/project")
-        
-
-# def project(request):
-#     return ("hi")
-    # stu = RegesteredUser.objects.all()
-    # print(stu)
-    # searilizer = RegesteredUserserial(stu , many=True)
-    # json_data = JSONRenderer().render(searilizer.data)
-    # return JsonResponse(searilizer.data,safe=False)
-# @csrf_exempt
-# @api_view(['GET', 'POST'])
-# def regester(request):
-#     response1 = request.data
-#     r = requests.get(url = "https://channeli.in/open_auth/get_user_data/", headers={"Authorization": f"{response1['token_type']} {response1['access_token']}"})
-#     # if request.method == 'GET':
-    #     snippets = RegesteredUser.objects.all()
-    #     serializer = RegesteredUserserial(snippets, many=True)
-    #     return JsonResponse(serializer.data, safe=False)
-    # elif request.method == 'POST':
-    #     data = {"name": "Manann", "year": 2, "email": "mananjain1234.ujn@gmail.com", "enrollment": 20312018}
-    #     print (request.POST.get("name"))
-    #     serializer = RegesteredUserserial(data=data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return JsonResponse(serializer.data, status=201)
-    #     return JsonResponse(serializer.errors, status=400)
-
-# class SnippetList(mixins.ListModelMixin,
-#                   mixins.CreateModelMixin,
-#                   generics.GenericAPIView):
-#     queryset = RegesteredUser.objects.all()
-#     serializer_class = RegesteredUserserial
-
-#     def get(self, request, *args, **kwargs):
-#         return self.list(request, *args, **kwargs)
-
-#     def post(self, request, *args, **kwargs):
-#         return self.create(request, *args, **kwargs)
-
 
 class project(generics.ListCreateAPIView):
     queryset = project.objects.all()
     serializer_class = projectserializer
 
+class list(generics.ListCreateAPIView):
+    queryset = list.objects.all()
+    serializer_class = listserializer
 
-# class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = RegesteredUser.objects.all()
-#     serializer_class = RegesteredUser
+class card(generics.ListCreateAPIView):
+    queryset = models.card.objects.all()
+    serializer_class = cardserializer
+
+# class list(generics.ListCreateAPIView):
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context["data"] = 
+#         return context
+    
+#     project_i = models.project.objects.get(id = 7)
+#     queryset = models.list.objects.filter(project_id  = project_i)
+#     serializer_class = listserializer
 
