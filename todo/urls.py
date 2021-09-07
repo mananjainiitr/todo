@@ -15,5 +15,5 @@ urlpatterns = [
     path('viewsets/project/id/<int:id>/',include(router2.urls)),
     path('viewsets/project/id/<int:id1>/list/id/<int:id2>/',include(router3.urls)),
     path('channeli',views.student_detail),
-    path('login',views.student),   
+    path('login',views.student),
 ]

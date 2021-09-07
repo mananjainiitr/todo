@@ -10,6 +10,7 @@ from django.contrib.auth.models import (
 )
 
 class projectserializer(serializers.ModelSerializer):
+    # creator = serializers.SlugRelatedField()
     class Meta:
         model = project
         fields = '__all__'

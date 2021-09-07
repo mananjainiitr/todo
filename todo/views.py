@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Permission
-from rest_framework import permissions
+from django.http.response import HttpResponseRedirectBase, JsonResponse
+from rest_framework import permissions ,status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -15,6 +16,7 @@ from todo import models
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from .permissions import IsAdminOrMember
+from todo import serializers
 def student_detail(request):
     if request.method == 'GET':
         url = "https://channeli.in/oauth/authorise/?client_id=STTrMkmTfDZEuFoDKj45uM6YEN4FXXXByWzltpRg&redirect_uri=http://127.0.0.1:8000/todo/login&state=RANDOM_STATE_STRING"
@@ -22,7 +24,6 @@ def student_detail(request):
         return response
 
 def student(request):
-
         code = request.GET.get("code")
         data = {'client_id':'STTrMkmTfDZEuFoDKj45uM6YEN4FXXXByWzltpRg',
         'client_secret':'rCDoILOftTynFi1YFGp97yCwAcSFeAWx8jkPvdOJEmSPVAuuhzUABjS8YUXy1LuQi0Wm3biIHuzqskoEFUyzHxqOc5O2HnDpvVXTWYyPO0hZtyztbNQ0bGnEb24e4PY9', 
@@ -56,123 +57,64 @@ def student(request):
         return redirect("/todo/viewsets/project")
        
 
-class projectViewset(viewsets.ViewSet):
+class projectViewset(viewsets.ModelViewSet):
     '''Listing/Creating/Updating/Deleting of project'''
-    permission_classes = [IsAuthenticated]
-    def list(self,request):
-        queryset = project.objects.all()
-        seralizer = projectserializer(queryset,many=True)
-        return Response(seralizer.data)
-        
-
-    def create(self, request):
-        var = request.data
-        var["creator"]=request.user.email
-        serializer = projectserializer(data=var)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status= HTTP_201_CREATED)
-        return Response(serializer.errors,status= HTTP_400_BAD_REQUEST)
-    
-    def update(self, request, pk=None):
-        proj = project.objects.get(pk=pk)
-        serializer = projectserializer(proj,data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status= HTTP_201_CREATED)
-        return Response(serializer.errors,status= HTTP_400_BAD_REQUEST)
-
-    def retrive(self,request,pk=None):
-        queryset = project.objects.all
-        proj = get_object_or_404(queryset,pk=pk)
-        serializer = projectserializer(proj)
-        return Response(serializer.data)
-    
-    def destroy(self,request,pk=None):
-        proj = project.objects.get(pk=pk)
-        serializer = projectserializer(proj)
-        proj.delete()
-        return Response(serializer.data)
-        
-
-class listViewset(viewsets.ViewSet):
+    queryset = project.objects.all()
+    serializer_class = projectserializer
+    # permission_classes = [IsAdminOrMember]
+    def perform_create(self, serializer):        
+        serializer.save(creator=self.request.user.email)
+class listViewset(viewsets.ModelViewSet):
     '''Listing/Creating/Updating/Deleting of list'''
+    # permission_classes = [IsAdminOrMember]
+    serializer_class = listserializer
     
-    def list(self,request,id):
+    def get_queryset(self,*args,**kargs):
+        id = self.kwargs.get("id")
         queryset = listOfProject.objects.filter(project_id=id)
-        seralizer = listserializer(queryset,many=True)
-        return Response(seralizer.data)
+        return queryset
 
-    def create(self, request , id):
-        var = request.data
-        var["project_id"]=id
-        serializer = listserializer(data=var)
-        print(serializer)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status= HTTP_201_CREATED)
-        return Response(serializer.errors,status= HTTP_400_BAD_REQUEST)
-
-    def update(self, request,id,pk):       
-        list = listOfProject.objects.get(pk=pk)
-        var = request.data
-        var["project_id"]=id
-        serializer = listserializer(list,data=var)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status= HTTP_201_CREATED)
-        return Response(serializer.errors,status= HTTP_400_BAD_REQUEST)
-
-    def retrive(self,request,id,pk=None):
-        queryset = listOfProject.objects.all
-        list_obj = get_object_or_404(queryset,pk=pk)
-        serializer = listserializer(list_obj)
+    def perform_create(self, serializer , *args,**kargs):
+        id = self.kwargs.get("id")
+        proj = project.objects.get(id = id)
+        serializer.save(project_id=proj)
+    def update(self,request,*args,**kargs):
+        partial = kargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data)
+    def perform_update(self, serializer, *args, **kwargs):
+        id = self.kwargs.get("id")
+        proj = project.objects.get(id = id)
+        serializer.save(project_id=proj)
     
-    def destroy(self,request,pk=None):
-        obj = listOfProject.objects.get(pk=pk)
-        serializer = listserializer(obj)
-        obj.delete()
-        return Response(serializer.data)
 
-class cardViewset(viewsets.ViewSet):
+
+class cardViewset(viewsets.ModelViewSet):
     '''Listing/Creating/Updating/Deleting of card'''
-   
+    serializer_class = cardserializer
+    # permission_classes = [IsAdminOrMember]
+    def get_queryset(self,*args,**kargs):
+        id = self.kwargs.get("id2")
+        queryset = cardOfList.objects.filter(list_id=id)
+        return queryset
+ 
+    def perform_create(self, serializer , *args,**kargs):
+        id = self.kwargs.get("id2")
+        lst = listOfProject.objects.get(id = id)
+        serializer.save(list_id=lst)
 
-    def list(self,request,id1,id2):    
-        queryset = cardOfList.objects.filter(list_id=id2)
-        seralizer = cardserializer(queryset,many=True)
-        return Response(seralizer.data)
-
-    def create(self, request,id1,id2):       
-        var = request.data
-        var["list_id"] = id2
-        serializer = cardserializer(data=var)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status= HTTP_201_CREATED)
-        return Response(serializer.errors,status= HTTP_400_BAD_REQUEST)
-
-    def update(self, request,pk,id1,id2):    
-        var = request.data
-        var["list_id"] = id2
-        list = listOfProject.objects.get(pk=pk)
-        serializer = cardserializer(list,data=var)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status= HTTP_201_CREATED)
-        return Response(serializer.errors,status= HTTP_400_BAD_REQUEST)
-
-    def retrive(self,request,id1,id2,pk=None):    
-        queryset = cardOfList.objects.all
-        card_obj = get_object_or_404(queryset,pk=pk)
-        serializer = listserializer(card_obj)
+    def update(self,request,*args,**kargs):
+        partial = kargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data)
-    
-    def destroy(self,request,pk=None):
-        obj = cardOfList.objects.get(pk=pk)
-        serializer = cardserializer(obj)
-        obj.delete()
-        return Response(serializer.data)
+
+    def perform_update(self, serializer, *args, **kwargs):
+        id = self.kwargs.get("id2")
+        lst = listOfProject.objects.get(id = id)
+        serializer.save(list_id=lst)
