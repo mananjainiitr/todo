@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.db.models.fields.related import ManyToManyField
 from rest_framework import serializers
 from todo import models 
-from  .models import  card, project ,User , list
+from  .models import  cardOfList, project ,User , listOfProject
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
@@ -15,11 +15,11 @@ class projectserializer(serializers.ModelSerializer):
         fields = '__all__'
 class listserializer(serializers.ModelSerializer):
     class Meta:
-        model = list
+        model = listOfProject
         fields = '__all__'
 class cardserializer(serializers.ModelSerializer):
     class Meta:
-        model = card
+        model = cardOfList
         fields = '__all__'
 
 
