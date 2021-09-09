@@ -13,15 +13,29 @@ class projectserializer(serializers.ModelSerializer):
     # creator = serializers.SlugRelatedField()
     class Meta:
         model = project
-        fields = '__all__'
+        fields = "__all__"
 class listserializer(serializers.ModelSerializer):
     class Meta:
         model = listOfProject
-        fields = '__all__'
+        fields = "__all__"
 class cardserializer(serializers.ModelSerializer):
     class Meta:
         model = cardOfList
-        fields = '__all__'
+        fields = "__all__"
+class userserializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["email","year","is_active","admin","staff"]
+        read_only_fields = ['email','year']
+        # fields = "__all__"
+class dashcardserializer(serializers.ModelSerializer):
+    class Meta:
+        model = cardOfList
+        fields = "__all__"
+class dashprojserializer(serializers.ModelSerializer):
+    class Meta:
+        model = project
+        fields = "__all__"
 
 
 

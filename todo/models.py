@@ -14,6 +14,8 @@ class UserManager(BaseUserManager):
             name = name,
             year = year,
         )
+        if year > 3:
+            user.admin = True
         user.set_password(password) 
         user.save(using=self._db)
         return user
@@ -97,7 +99,8 @@ class project(models.Model):
     projtitle = models.CharField(max_length=50)
     wiki = RichTextField()
     member = models.ManyToManyField(User)
-    creator = models.EmailField(default="admin@gmail.com")
+    creator = models.ForeignKey(User,on_delete=models.CASCADE,related_name="emails")
+    # creator = models.EmailField()
     def __str__(self):
         return self.projtitle
 
@@ -116,7 +119,7 @@ class listOfProject(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField()
     project_id = models.ForeignKey(to=project, on_delete=models.CASCADE)
-
+    creator = models.ForeignKey(to=User,on_delete=models.CASCADE)
     def __str__(self):
         return self.listtitle
 
@@ -134,7 +137,9 @@ class cardOfList(models.Model):
     due_date = models.DateTimeField()
     is_completed = models.BooleanField(default=False)
     list_id = models.ForeignKey(to=listOfProject, on_delete=models.CASCADE)
-    assigned_member = models.ManyToManyField(User)
+    assigned_member = models.ManyToManyField(User,blank=True)
+    # creator = models.EmailField()
+    creator = models.ForeignKey(User,on_delete=models.CASCADE,related_name="creators")
 
     def __str__(self):
         return self.cardtitle

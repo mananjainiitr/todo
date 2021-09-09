@@ -1,6 +1,6 @@
 from django.contrib import admin
 # Register your models here.
-from .models import User, project ,listOfProject , cardOfList
+from .models import User, UserManager, project ,listOfProject , cardOfList
 from todo import models
 
 admin.site.register(User)
