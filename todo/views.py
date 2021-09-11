@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Permission
+from django.core.checks.messages import Error
 from django.http.response import Http404, HttpResponse, HttpResponseNotFound, HttpResponseRedirectBase, JsonResponse
 from requests.api import request
 from rest_framework import permissions ,status 
@@ -18,6 +19,7 @@ from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from .permissions import AdminPermition, IsAdminOrMember, IsAdminOrMember_c, IsAdminOrMember_l, NotAcessable
 from todo import serializers
+from django.db.models import Q
 def student_detail(request):
     if request.method == 'GET':
         url = "https://channeli.in/oauth/authorise/?client_id=STTrMkmTfDZEuFoDKj45uM6YEN4FXXXByWzltpRg&redirect_uri=http://127.0.0.1:8000/todo/login&state=RANDOM_STATE_STRING"
@@ -39,21 +41,26 @@ def student(request):
         email=response_data["contactInformation"]["instituteWebmailAddress"]
         name = response_data["person"]["fullName"]
         year = response_data["student"]["currentYear"]
+        roles = response_data["person"]["roles"][1]["role"]
         user = User.objects.filter(email = email).exists()
-        if user :
-            user = User.objects.get(email = email)
-            login(request,user)
-            return redirect("/todo/viewsets/project")
-        else :
-            user = User.objects.create_user(
-            email=email,
-            name = name,
-            year = year,
-            )
-            user.save()
-            user = User.objects.get(email = email)
-            login(request,user)
-            return redirect("/todo/viewsets/project")
+        if roles == "Maintainer":
+            if user :
+                user = User.objects.get(email = email)
+                login(request,user)
+                return redirect("/todo/viewsets/project")
+            else :
+                user = User.objects.create_user(
+                email=email,
+                name = name,
+                year = year,
+                )
+                user.save()
+                user = User.objects.get(email = email)
+                login(request,user)
+                return redirect("/todo/viewsets/project")
+        else:
+            return HttpResponse("you are not member of IMG")
+
         
        
 #viewset for displaying list of projects
@@ -96,7 +103,10 @@ class listViewset(viewsets.ModelViewSet):
 
         id = self.kwargs.get("id")
         proj = project.objects.get(id = id)
-        serializer.save(project_id=proj,creator=self.request.user)
+        if self.request.user.admin or (self.request.user in proj.member.all()) or (proj.creator.email in self.request.user.email):
+            serializer.save(project_id=proj,creator=self.request.user)
+        else:
+            raise Http404
      
     def update(self,request,*args,**kargs):
         """update the list"""
@@ -123,7 +133,6 @@ class listViewset(viewsets.ModelViewSet):
             self.permission_classes = [IsAuthenticated,]
         elif self.request.method == 'PUT' or self.request.method == 'PATCH' or self.request.method == 'DELETE':
                 self.permission_classes = [IsAdminOrMember_l,IsAuthenticated]
-
         return super(listViewset, self).get_permissions()
        
 # card viewset for displaying cards in list  
@@ -137,8 +146,10 @@ class cardViewset(viewsets.ModelViewSet):
         id = self.kwargs.get("id2")
         queryset = cardOfList.objects.filter(list_id=id)
         proj = project.objects.filter(id=p_id).exists()
-        lis = listOfProject.objects.filter(id = id).exists()
-        if proj and lis:
+        lis = listOfProject.objects.get(id = id)
+        print(p_id)
+        print(lis.project_id)
+        if p_id == lis.project_id.id :
             return queryset
         else:
             raise Http404
@@ -147,8 +158,14 @@ class cardViewset(viewsets.ModelViewSet):
         """create cards"""
 
         id = self.kwargs.get("id2")
+        print("po")
+        print(id)
         lst = listOfProject.objects.get(id = id)
-        serializer.save(list_id=lst,creator=self.request.user)
+        proj = project.objects.get(id = lst.project_id.id)
+        if self.request.user.admin or (self.request.user in proj.member.all()) or (proj.creator.email in self.request.user.email):
+            serializer.save(list_id=lst,creator=self.request.user)
+        else:
+            raise Http404
 
     def update(self,request,*args,**kargs):
         """Update cards"""
@@ -193,7 +210,7 @@ class dashProjectViewset(viewsets.ModelViewSet):
     serializer_class = dashprojserializer
     def get_queryset(self,*args,**kargs):
         id = self.request.user.email
-        queryset = project.objects.filter(member__email__contains = id)
+        queryset = project.objects.filter(Q(member__email__contains = id )|Q(creator = self.request.user))
         return queryset
 
 #display dashboard to user card data viewset

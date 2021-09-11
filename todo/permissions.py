@@ -15,14 +15,19 @@ class IsAdminOrMember(permissions.BasePermission):
             return False
 #if user is admin or creator return true
 class IsAdminOrMember_l(permissions.BasePermission):
+
         def has_object_permission(self,request,view,obj):
             id = obj.project_id.id
+            print(id)
             obj = project.objects.get(id = id)
-            if request.method in permissions.SAFE_METHODS or request.user.admin:
+            if request.user.admin:
+                print("admin")
                 return True
-            if request.user in obj.member.all():
+            elif request.user in obj.member.all():
+                print("user")
                 return True
             elif (obj.creator.email in request.user.email):
+                print("creator")
                 return True
             return False
 
