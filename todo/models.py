@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser 
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from ckeditor.fields import RichTextField
 # Create your models here.
 # Base user manager for having a custom user table
 class UserManager(BaseUserManager):
@@ -13,6 +14,8 @@ class UserManager(BaseUserManager):
             name = name,
             year = year,
         )
+        if year > 3:
+            user.admin = True
         user.set_password(password) 
         user.save(using=self._db)
         return user
@@ -94,15 +97,16 @@ class project(models.Model):
         
     """
     projtitle = models.CharField(max_length=50)
-    wiki = models.TextField()
+    wiki = RichTextField()
     member = models.ManyToManyField(User)
-
+    creator = models.ForeignKey(User,on_delete=models.CASCADE,related_name="emails")
+    # creator = models.EmailField()
     def __str__(self):
         return self.projtitle
 
 #model for adding a list
     
-class list(models.Model):
+class listOfProject(models.Model):
 
     """
         Custom user table for regestering the user
@@ -115,13 +119,13 @@ class list(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField()
     project_id = models.ForeignKey(to=project, on_delete=models.CASCADE)
-
+    creator = models.ForeignKey(to=User,on_delete=models.CASCADE)
     def __str__(self):
         return self.listtitle
 
 #model for adding a card
 
-class card(models.Model):
+class cardOfList(models.Model):
     """
         Custom user table for regestering the user
         fields cardtitle , desc , is_completed , start_date , due_date , list_id , assigned_members
@@ -132,8 +136,10 @@ class card(models.Model):
     start_date = models.DateTimeField(auto_now_add=True)
     due_date = models.DateTimeField()
     is_completed = models.BooleanField(default=False)
-    list_id = models.ForeignKey(to=list, on_delete=models.CASCADE)
-    assigned_member = models.ManyToManyField(User)
+    list_id = models.ForeignKey(to=listOfProject, on_delete=models.CASCADE)
+    assigned_member = models.ManyToManyField(User,blank=True)
+    # creator = models.EmailField()
+    creator = models.ForeignKey(User,on_delete=models.CASCADE,related_name="creators")
 
     def __str__(self):
         return self.cardtitle

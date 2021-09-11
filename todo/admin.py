@@ -1,9 +1,9 @@
 from django.contrib import admin
 # Register your models here.
-from .models import User, project ,list , card
+from .models import User, UserManager, project ,listOfProject , cardOfList
 from todo import models
 
 admin.site.register(User)
 admin.site.register(project)
-admin.site.register(list)
-admin.site.register(card)
+admin.site.register(listOfProject)
+admin.site.register(cardOfList)
