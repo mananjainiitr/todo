@@ -58,7 +58,8 @@ def student(request):
                 data1['token'] = Token.objects.get(user=user).key
                 print (data1)
                 # return JsonResponse(data1)
-                return redirect("http://localhost:3000/todo/project?Token=Token "+data1['token'])
+                return redirect("http://localhost:3000/todo/authenticate?Token=Token "+data1['token'],
+                                headers={"token":data1['token']})
             else :
                 user = User.objects.create_user(
                 email=email,
@@ -72,7 +73,8 @@ def student(request):
                 data1 = {}
                 data1['token'] = Token.objects.get(user=user).key
                 # return Response (data1)
-                return redirect("http://localhost:3000/todo/project?Token=Token "+data1['token'])
+                return redirect("http://localhost:3000/todo/authenticate?Token=Token "+data1['token'],
+                                headers={"token":data1['token']})
         else:
             return HttpResponse("you are not member of IMG")
 
