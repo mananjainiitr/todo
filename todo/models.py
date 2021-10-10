@@ -96,7 +96,7 @@ class project(models.Model):
         fields projtitle , wiki , member
         
     """
-    projtitle = models.CharField(max_length=50)
+    projtitle = models.CharField(max_length=50 , unique=True)
     wiki = RichTextField()
     member = models.ManyToManyField(User)
     creator = models.ForeignKey(User,on_delete=models.CASCADE,related_name="emails")
