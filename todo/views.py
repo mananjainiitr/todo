@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from .models import   User , project , listOfProject,cardOfList
-from .serializers import  ProjectValidator, dashcardserializer, dashprojserializer, dataserializer, listserializer, projectserializer ,cardserializer, userdataserializer, userserializer
+from .serializers import  CardValidator, ListValidator, ProjectValidator, dashcardserializer, dashprojserializer, dataserializer, listserializer, projectserializer ,cardserializer, userdataserializer, userserializer
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import  viewsets
 from django.shortcuts import redirect
@@ -204,6 +204,7 @@ class cardViewset(viewsets.ModelViewSet):
         print(id)
         lst = listOfProject.objects.get(id = id)
         cards = cardOfList.objects.filter(list_id = lst,cardtitle=self.request.data['cardtitle']).exists()
+        # print(cards)
         if (not(cards)):
             proj = project.objects.get(id = lst.project_id.id)
             if self.request.user.admin or (self.request.user in proj.member.all()) or (proj.creator.email in self.request.user.email):
@@ -266,7 +267,7 @@ class dashProjectViewset(viewsets.ModelViewSet):
     serializer_class = dashprojserializer
     def get_queryset(self,*args,**kargs):
         id = self.request.user.email
-        queryset = project.objects.filter(Q(member__email__contains = id )|Q(creator = self.request.user))
+        queryset = project.objects.filter(Q(member__email__contains = id )|Q(creator = self.request.user)).distinct()
         return queryset
 
 #display dashboard to user card data viewset
@@ -300,4 +301,23 @@ class validateProject(viewsets.ModelViewSet):
     serializer_class = ProjectValidator
     def get_queryset(self,*args,**kargs):
         queryset = project.objects.filter(projtitle = self.kwargs.get("title"))
+        return queryset
+
+class validateList(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication,SessionAuthentication]
+    permission_classes = [IsAuthenticated,]
+    serializer_class = ListValidator
+    def get_queryset(self,*args,**kargs):
+
+        projectid = project.objects.get(id = self.kwargs.get("id"))
+        queryset = listOfProject.objects.filter(project_id=projectid,listtitle = self.kwargs.get("title"))
+        return queryset
+class validateCard(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication,SessionAuthentication]
+    permission_classes = [IsAuthenticated,]
+    serializer_class = CardValidator
+    def get_queryset(self,*args,**kargs):
+
+        listid = listOfProject.objects.get(id = self.kwargs.get("id1"))
+        queryset = cardOfList.objects.filter(list_id=listid,cardtitle = self.kwargs.get("title"))
         return queryset

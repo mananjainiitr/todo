@@ -11,6 +11,8 @@ router5 = DefaultRouter()
 router6 = DefaultRouter()
 router7 = DefaultRouter()
 router8 = DefaultRouter()
+router9 = DefaultRouter()
+router10 = DefaultRouter()
 router1.register('project',views.projectViewset,basename="project")
 router2.register('list',views.listViewset,basename="project")
 router3.register('card',views.cardViewset,basename="card")
@@ -20,6 +22,8 @@ router5.register('project',views.dashProjectViewset,basename="dash_proj")
 router6.register('data',views.dataview,basename="dash_data")
 router7.register('data',views.mydataview,basename="my_dash_data")
 router8.register('data',views.validateProject,basename="my_proj_validator")
+router9.register('data',views.validateList,basename = "my_list_validator")
+router10.register('data',views.validateCard,basename = "my_card_validator")
 
 urlpatterns = [
     path('viewsets/',include(router1.urls)),
@@ -30,6 +34,8 @@ urlpatterns = [
     path('channeli',views.student_detail),
     path('login',views.student),
     path('data/',include(router6.urls)),
-    path('validate/<str:title>/',include(router8.urls)),
-    path('mydata/',include(router7.urls))
+    path('validate/project/<str:title>/',include(router8.urls)),
+    path('mydata/',include(router7.urls)),
+    path('validate/list/<int:id>/<str:title>/',include(router9.urls)),
+    path('validate/card/<int:id1>/<str:title>/',include(router10.urls))
 ]

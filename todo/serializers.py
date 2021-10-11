@@ -42,22 +42,24 @@ class cardserializer(serializers.ModelSerializer):
 class userserializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id","email","year","is_active","admin","staff"]
-        read_only_fields = ['email','year']
+        fields = ["id","name","email","year","is_active","admin","staff"]
+        read_only_fields = ['email','year','name']
         # fields = "__all__"
 class dashcardserializer(serializers.ModelSerializer):
     class Meta:
         model = cardOfList
         fields = "__all__"
+        depth = 1
 class dashprojserializer(serializers.ModelSerializer):
     class Meta:
         model = project
         fields = "__all__"
+        depth = 1
 class dataserializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id","email"]
-        read_only_fields = ['email']
+        fields = ["id","email","name"]
+        read_only_fields = ['email','name']
 
 class userdataserializer(serializers.ModelSerializer):
     class Meta:
@@ -71,4 +73,15 @@ class ProjectValidator(serializers.ModelSerializer):
         model = project
         fields = ['projtitle']
         read_only_fields = ['projtitle']
+
+class ListValidator(serializers.ModelSerializer):
+    class Meta:
+        model = listOfProject
+        fields = ['listtitle']
+        read_only_fields = ['listtitle']
+class CardValidator(serializers.ModelSerializer):
+    class Meta:
+        model = cardOfList
+        fields = ['cardtitle']
+        read_only_fields = ['cardtitle']
 
