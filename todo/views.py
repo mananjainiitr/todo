@@ -74,9 +74,9 @@ class projectViewset(viewsets.ModelViewSet):
         serializer.save(creator=self.request.user)
     
     def get_permissions(self):
-        if self.request.method == 'GET' or self.request.method == 'POST':
+        if self.request.method in ('GET', 'POST'):
             self.permission_classes = [IsAuthenticated,]
-        elif self.request.method == 'PUT' or self.request.method == 'PATCH' or self.request.method == 'DELETE':
+        elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
                 self.permission_classes = [IsAdminOrMember]
 
         return super(projectViewset, self).get_permissions()
@@ -185,9 +185,9 @@ class cardViewset(viewsets.ModelViewSet):
         serializer.save(list_id=lst)
 
     def get_permissions(self):
-        if self.request.method == 'GET' or self.request.method == 'POST':
+        if self.request.method in ('GET', 'POST'):
             self.permission_classes = [IsAuthenticated,]
-        elif self.request.method == 'PUT' or self.request.method == 'PATCH' or self.request.method == 'DELETE':
+        elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
                 self.permission_classes = [IsAdminOrMember_c,IsAuthenticated]
         return super(cardViewset, self).get_permissions()
 
